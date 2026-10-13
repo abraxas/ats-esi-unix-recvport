@@ -1,0 +1,108 @@
+name: ats-esi-unix-recvport
+
+services:
+  origin-tcp:
+    image: python:3.13-slim
+    pull_policy: missing
+    init: true
+    restart: "no"
+    environment:
+      ORIGIN_ROLE: tcp
+      PYTHONUNBUFFERED: "1"
+      WITNESS: ATS-ESI-UNIX-RECVPORT-WITNESS
+    volumes:
+      - ./origin.py:/lab/origin.py:ro
+    working_dir: /lab
+    command: ["python3", "/lab/origin.py"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)",
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
+
+  origin-uds:
+    image: python:3.13-slim
+    pull_policy: missing
+    init: true
+    restart: "no"
+    environment:
+      ORIGIN_ROLE: uds
+      PYTHONUNBUFFERED: "1"
+      UDS_PATH: /uds/origin.sock
+      WITNESS: ATS-ESI-UNIX-RECVPORT-WITNESS
+    volumes:
+      - ./origin.py:/lab/origin.py:ro
+      - uds:/uds
+    working_dir: /lab
+    command: ["python3", "/lab/origin.py"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)",
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
+
+  ats-control:
+    image: ats-10.2.0-lab:local
+    pull_policy: never
+    init: true
+    restart: "no"
+    depends_on:
+      origin-tcp:
+        condition: service_healthy
+      origin-uds:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:18751:8080"
+    volumes:
+      - ./entrypoint.sh:/lab/entrypoint.sh:ro
+      - ./etc-common:/lab/etc-common:ro
+      - ./etc-control:/lab/etc-overlay:ro
+    command: ["bash", "/lab/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080'"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 8s
+
+  ats-poc:
+    image: ats-10.2.0-lab:local
+    pull_policy: never
+    init: true
+    restart: "no"
+    depends_on:
+      origin-tcp:
+        condition: service_healthy
+      origin-uds:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:18750:8080"
+    volumes:
+      - ./entrypoint.sh:/lab/entrypoint.sh:ro
+      - ./etc-common:/lab/etc-common:ro
+      - ./etc-poc:/lab/etc-overlay:ro
+      - uds:/uds:ro
+    command: ["bash", "/lab/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080'"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 8s
+
+volumes:
+  uds:

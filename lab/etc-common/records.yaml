@@ -1,0 +1,35 @@
+records:
+  accept_threads: 1
+  exec_thread:
+    affinity: 0
+    autoconfig:
+      enabled: 0
+    limit: 1
+  task_threads: 1
+  diags:
+    debug:
+      enabled: 1
+      tags: http|url_rewrite|plugin_esi|plugin_esi_fetcher
+    output:
+      debug: E
+      error: E
+      warning: E
+  http:
+    cache:
+      http: 0
+    connect_attempts_max_retries: 1
+    connect_attempts_timeout: 5
+    number_of_redirections: 0
+    server_ports: "8080"
+    transaction_no_activity_timeout_in: 15
+    transaction_no_activity_timeout_out: 15
+  reverse_proxy:
+    enabled: 1
+  url_remap:
+    pristine_host_hdr: 0
+    remap_required: 1
+  cache:
+    ram_cache:
+      size: 1048576
+  log:
+    logging_enabled: 1
