@@ -13,6 +13,10 @@
   &nbsp;·&nbsp;
   <a href="https://github.com/abraxas/ats-esi-unix-recvport">ats-esi-unix-recvport</a>
 </p>
+<p align="center">
+  Write-up: <a href="https://abraxaslabs.tech/research/ats-esi-unix-recvport"><strong>https://abraxaslabs.tech/research/ats-esi-unix-recvport</strong></a>
+</p>
+
 
 # ats-esi-unix-recvport
 
